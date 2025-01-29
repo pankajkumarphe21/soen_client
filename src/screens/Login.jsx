@@ -17,7 +17,7 @@ const Login = () => {
 
         e.preventDefault();
 
-        axios.post('http://localhost:3000/users/login', {
+        axios.post('/users/login', {
             email,
             password
         }).then((res) => {
