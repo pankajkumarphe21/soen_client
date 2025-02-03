@@ -17,7 +17,7 @@ function SyntaxHighlightedCode(props) {
       ref.current.removeAttribute('data-highlighted')
     }
   }, [props.className, props.children])
-
+  console.log(<code {...props} ref={ref} />);
   return <code {...props} ref={ref} />
 }
 
