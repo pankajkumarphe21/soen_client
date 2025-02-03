@@ -6,7 +6,7 @@
     },
     {
       "source": "/cdn/(.*)",
-      "destination": "https://unpkg.com/"
+      "destination": "https://unpkg.com"
     }
   ],
   "headers": [
