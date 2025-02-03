@@ -298,11 +298,8 @@ function getMessages(){
                                                 setFileTree(ft)
                                                 await axios.put(`/projects/fileTree/${location.state.project._id}`,{fileTree});
                                             }}
-                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
-                                            style={{
-                                                whiteSpace: 'pre-wrap',
-                                                paddingBottom: '25rem',
-                                                counterSet: 'line-numbering',
+                                            dangerouslySetInnerHTML={{
+                                              __html: hljs.highlight(fileTree[currentFile].file.contents, { language: 'javascript' }).value
                                             }}
                                         />
                                     </pre>
