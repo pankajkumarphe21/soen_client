@@ -30,7 +30,6 @@ const Project = () => {
       console.error("Invalid JSON:", error);
       messageObject = message.split('```json')[1].split('```')[0];
   }
-  console.log(messageObject)
     return (
         <div
             className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
