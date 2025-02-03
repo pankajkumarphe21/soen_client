@@ -20,6 +20,12 @@ html,body{
 .message-box::-webkit-scrollbar {
   display: none;
 }
+.code-editor-area::-webkit-scrollbar {
+  display: none;
+}
+.ai-message::-webkit-scrollbar {
+  display: none;
+}
 
 .conversation-area::-webkit-scrollbar {
   display: none;

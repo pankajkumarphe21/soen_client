@@ -1,14 +1,54 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from '../config/axios.js';
 import { UserContext } from "../context/user.context.jsx";
-import Markdown from 'markdown-to-jsx'
+import Markdown from 'markdown-to-jsx';
+import hljs from "highlight.js";
+import {getWebContainer} from '../config/webContainer.js'
+
+function SyntaxHighlightedCode(props) {
+  const ref = useRef(null)
+
+  React.useEffect(() => {
+    if (ref.current && props.className?.includes('lang-') && window.hljs) {
+      window.hljs.highlightElement(ref.current)
+
+      // hljs won't reprocess the element unless this attribute is removed
+      ref.current.removeAttribute('data-highlighted')
+    }
+  }, [props.className, props.children])
+
+  return <code {...props} ref={ref} />
+}
 
 const Project = () => {
+  function WriteAiMessage(message) {
+    let messageObject;
+    try {
+      messageObject = JSON.parse(message.split('```json')[1].split('```')[0]);
+  } catch (error) {
+      console.error("Invalid JSON:", error);
+      messageObject = message.split('```json')[1].split('```')[0];
+  }
+    return (
+        <div
+            className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
+        >
+            <Markdown
+                
+                options={{
+                    overrides: {
+                        code: SyntaxHighlightedCode,
+                    },
+                }}
+            >{messageObject.text}</Markdown>
+        </div>)
+}
   const location = useLocation();
   const { setUser } = useContext(UserContext);
   const {user}=useContext(UserContext);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [openFiles,setOpenFiles]=useState([]);
   const [isModalOpen,setIsModalOpen]=useState(false);
   const [selectedUserId,setSelectedUserId]=useState([]);
   const [users,setUsers]=useState([]);
@@ -17,6 +57,11 @@ const Project = () => {
   const messageBox = React.createRef()
   const [change,setChange]=useState(0);
   const [project,setProject]=useState(location.state.project);
+  const [fileTree,setFileTree]=useState({});
+  const [currentFile,setCurrentFile]=useState(null);
+  const [webContainer,setWebContainer]=useState(null);
+  const [iframeUrl,setIframeUrl]=useState(null);
+  const [runProcess,setRunProcess]=useState(null);
   const handleUserClick=(id)=>{
     let temp=selectedUserId.filter((temp)=>
       id==temp
@@ -41,11 +86,16 @@ const Project = () => {
   }
   function sendMessage(){
     axios.post(`/rooms/send/${location.state.project._id}`,{message,_id:user._id}).then((res)=>{
-      console.log('message sent');
-      console.log(res.data)
+      const message = JSON.parse(res.data.split('```json')[1].split('```')[0]);
+      if(message.fileTree){
+        setFileTree(message.fileTree);
+        axios.put(`/projects/fileTree/${location.state.project._id}`,{fileTree:message.fileTree});
+        webContainer.mount(fileTree);
+      }
     })
     getMessages();
-    setChange(!change)
+    setChange(!change);
+    scrollToBottom();
   }
   function scrollToBottom() {
     messageBox.current.scrollTop = messageBox.current.scrollHeight
@@ -56,20 +106,28 @@ function getMessages(){
   })
 }
   useEffect(()=>{
+    if(!webContainer){
+      getWebContainer().then(container=>{
+        setWebContainer(container);
+        console.log('container')
+      })
+    }
     setUser(location.state.user);
     axios.get(`/projects/get-project/${location.state.project._id}`).then(res=>
       {
         setProject(res.data.project);
+        setFileTree(res.data.project.fileTree);
       }
     );
-    console.log(user);
     axios.get(`/rooms/all-messages/${location.state.project._id}`).then((res)=>{
       setMessages(res.data);
-    })
+    });
+    axios.get(`/`)
+    setInterval(getMessages,30000)
     axios.get('/users/all').then((res)=>{
       setUsers(res.data.users);
     }).catch(err=>console.log(err))
-    scrollToBottom()
+    scrollToBottom();
   },[change]);
   return (
     <main className="h-screen w-screen flex ">
@@ -99,11 +157,13 @@ function getMessages(){
                     </div>
                   }
                   else{
-                    return <div key={_id} className={`message max-w-56 flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                    return <div key={_id} className={`message max-w-80 flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                       <small className="opacity-65 test-xs">Ai</small>
-                      <p className="text-sm">
-                        {text_message}
-                      </p>
+                      <div className="text-sm">
+                        <div className="overflow-scroll bg-slate-950 text-white ai-message">
+                        {WriteAiMessage(text_message)}
+                        </div>
+                      </div>
                     </div>
                   }
                 })
@@ -116,8 +176,14 @@ function getMessages(){
               placeholder="Enter message"
               value={message}
               onChange={(e)=>{setMessage(e.target.value);}}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  sendMessage();
+                  setMessage("");
+                }
+              }}
             />
-            <button onClick={()=>{sendMessage()}}  className="px-5 bg-slate-950 text-white">
+            <button onClick={()=>{sendMessage();setMessage("")}}  className="px-5 bg-slate-950 text-white">
               <i className="ri-send-plane-fill"></i>
             </button>
           </div>
@@ -138,8 +204,8 @@ function getMessages(){
           </header>
           <div className="users flex flex-col gap-2">
             {
-              project.users && project.users.map((user)=>(
-                <div key={user._id} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
+              project.users && project.users.map((user,i)=>(
+                <div key={i} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
                   <div className="aspect-square w-fit h-fit text-white flex justify-center items-center rounded-full bg-slate-500 p-5">
                     <i className="ri-user-fill absolute"></i>
                   </div>
@@ -150,6 +216,110 @@ function getMessages(){
             
           </div>
         </div>
+      </section>
+      <section className="right bg-red-50 flex-grow h-full flex">
+            <div className="explorer h-full max-w-64 min-w-52 bg-slate-200">
+              <div className="file-tree w-full">
+                {
+                  fileTree && Object.keys(fileTree).map((file,index)=>(
+                    <button key={index} onClick={()=>{setCurrentFile(file);setOpenFiles([ ...new Set([ ...openFiles, file ]) ])}} className="tree-element cursor-pointer p-2 px-4 gap-2 flex items-center bg-slate-300 w-full">
+                      <p className="font-semibold text-lg">{file}</p>
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+                <div className="code-editor flex flex-col flex-grow h-full shrink">
+                  <div className="top flex justify-between w-full">
+                    <div className="files flex">
+                    {
+                        openFiles.map((file, index) => {
+                          return (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentFile(file)}
+                                className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${currentFile === file ? 'bg-slate-400' : ''}`}>
+                                <p
+                                    className='font-semibold text-lg'
+                                >{file}</p>
+                            </button>
+                          )
+                        })
+                    }
+                    </div>
+                    <div className="actions flex gap-2">
+                      <button 
+                      onClick={
+                        async()=>{
+                          await webContainer?.mount(fileTree)
+                          const installProcess=await webContainer?.spawn('npm',["install"]);
+                          installProcess.output.pipeTo(new WritableStream({
+                            write(chunk){
+                              console.log(chunk);
+                            }
+                          }))
+                          if(runProcess){
+                            runProcess.kill();
+                          }
+                          const tempRunProcess=await webContainer?.spawn('npm',["start"]);
+                          tempRunProcess.output.pipeTo(new WritableStream({
+                            write(chunk){
+                              console.log(chunk);
+                            }
+                          }))
+                          setRunProcess(tempRunProcess);
+                          webContainer?.on('server-ready',(port,url)=>{
+                            console.log(port,url);
+                            setIframeUrl(url);
+                          })
+                        }} className="p-2 px-4 bg-slate-300 text-white">run</button>
+                    </div>
+                  </div>
+                  <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
+                    {
+                      fileTree && fileTree[currentFile] && (
+                        <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+                                    <pre
+                                        className="hljs h-full">
+                                        <code
+                                            className="hljs h-full outline-none"
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            onBlur={async(e) => {
+                                                const updatedContent = e.target.innerText;
+                                                const ft = {
+                                                    ...fileTree,
+                                                    [ currentFile ]: {
+                                                        file: {
+                                                            contents: updatedContent
+                                                        }
+                                                    }
+                                                }
+                                                setFileTree(ft)
+                                                await axios.put(`/projects/fileTree/${location.state.project._id}`,{fileTree});
+                                            }}
+                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
+                                            style={{
+                                                whiteSpace: 'pre-wrap',
+                                                paddingBottom: '25rem',
+                                                counterSet: 'line-numbering',
+                                            }}
+                                        />
+                                    </pre>
+                                </div>
+                      )
+                    }
+                  </div>
+                </div>
+                {iframeUrl && webContainer && 
+                  <div className="flex flex-col h-full">
+                    <div className="address-bar">
+                      <input type="text" value={iframeUrl} onChange={(e)=>setIframeUrl(e.target.value)} className="w-full p-2 px-4 bg-slate-200" />
+                    </div>
+                    <iframe src={iframeUrl} className="w-1/2 h-full"></iframe>
+                  </div>
+                }
+              
       </section>
       {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
