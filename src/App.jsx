@@ -5,9 +5,7 @@ import { UserProvider } from "./context/user.context";
 
 const App = () => {
   return (
-    <UserProvider>
-      <AppRoutes />
-    </UserProvider>
+    <UserProvider><AppRoutes /></UserProvider>
   );
 };
 
