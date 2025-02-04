@@ -110,6 +110,10 @@ function getMessages(){
         console.log('container')
       })
     }
+    if(webContainer && iframeUrl){
+      document.getElementById('update').classList.remove('max-w-[700px]')
+      document.getElementById('update').classList.add('max-w-[400px]')
+    }
     setUser(location.state.user);
     axios.get(`/projects/get-project/${location.state.project._id}`).then(res=>
       {
@@ -128,7 +132,7 @@ function getMessages(){
     scrollToBottom();
   },[change]);
   return (
-    <main className="h-screen w-screen flex ">
+    <main className="h-screen w-screen flex overflow-hidden">
       <section className="left min-h-screen relative flex flex-col min-w-96 bg-slate-300">
         <header className="flex justify-between items-center px-4 p-2 w-full bg-slate-100 absolute top-0">
           <button className="flex gap-2" onClick={()=>setIsModalOpen(!isModalOpen)}>
@@ -227,8 +231,8 @@ function getMessages(){
                 }
               </div>
             </div>
-                <div className="code-editor flex flex-col flex-grow h-full shrink">
-                  <div className="top flex justify-between w-full">
+                <div id="update" className="code-editor max-w-[700px] overflow-scroll flex flex-col flex-grow h-full shrink">
+                  <div className="top flex justify-between max-w-full">
                     <div className="files flex">
                     {
                         openFiles.map((file, index) => {
@@ -273,7 +277,7 @@ function getMessages(){
                         }} className="p-2 px-4 bg-slate-300 text-white">run</button>
                     </div>
                   </div>
-                  <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
+                  <div className="bottom overflow-auto flex flex-grow max-w-full shrink ">
                     {
                       fileTree && fileTree[currentFile] && (
                         <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">

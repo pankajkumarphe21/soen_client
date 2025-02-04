@@ -23,8 +23,17 @@ html,body{
 .code-editor-area::-webkit-scrollbar {
   display: none;
 }
+.code-editor::-webkit-scrollbar {
+  display: none;
+}
 .ai-message::-webkit-scrollbar {
   display: none;
+}
+.bottom{
+  height: 20px;
+  ::-webkit-scrollbar{
+    display: none;
+  }
 }
 
 .conversation-area::-webkit-scrollbar {
