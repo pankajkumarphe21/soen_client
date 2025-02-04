@@ -6,12 +6,10 @@
     }
   ],
   "routes": [
-    
       {
         "src": "/cdn/(.*)",
         "dest": "https://unpkg.com/$1"
       }
-    
   ],
   "headers": [
     {
