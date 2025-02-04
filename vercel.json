@@ -3,6 +3,10 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    },
+    {
+      "source": "/cdn/(.*)",
+      "destination": "https://unpkg.com/$1"
     }
   ],
   "headers": [

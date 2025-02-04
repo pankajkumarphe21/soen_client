@@ -8,7 +8,6 @@ import {getWebContainer} from '../config/webContainer.js'
 
 function SyntaxHighlightedCode(props) {
   const ref = useRef(null)
-  console.log(props)
   React.useEffect(() => {
     if (ref.current && props.className?.includes('lang-') && window.hljs) {
       window.hljs.highlightElement(ref.current)
@@ -17,7 +16,6 @@ function SyntaxHighlightedCode(props) {
       ref.current.removeAttribute('data-highlighted')
     }
   }, [props.className, props.children])
-  console.log(<code {...props} ref={ref} />);
   return <code {...props} ref={ref} />
 }
 
