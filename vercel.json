@@ -3,10 +3,13 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    },
+    }
+  ],
+  "redirects": [
     {
       "source": "/cdn/(.*)",
-      "destination": "https://unpkg.com/"
+      "destination": "https://unpkg.com/:1",
+      "permanent": false
     }
   ],
   "headers": [
