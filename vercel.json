@@ -1,17 +1,15 @@
 {
   "rewrites": [
     {
+      "source": "/cdn/(.*)",
+      "destination": "https://unpkg.com/"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-  "redirects": [
-    {
-      "source": "/cdn/(.*)",
-      "destination": "https://unpkg.com/:1",
-      "permanent": false
-    }
-  ],
+  
   "headers": [
     {
       "source": "/(.*)",
