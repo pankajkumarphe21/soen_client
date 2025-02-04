@@ -5,7 +5,7 @@
       "destination": "/index.html"
     },
     {
-      "source": "https://soen-client.vercel.app/cdn/(.*)",
+      "source": "cdn/(.*)",
       "destination": "https://unpkg.com"
     }
   ],
