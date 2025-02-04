@@ -6,7 +6,7 @@
     },
     {
       "source": "https://soen-client.vercel.app/cdn/(.*)",
-      "destination": "https://unpkg.com/$1"
+      "destination": "https://unpkg.com"
     }
   ],
   "headers": [
