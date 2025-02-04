@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/cdn/(.*)",
-      "destination": "https://unpkg.com/"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
