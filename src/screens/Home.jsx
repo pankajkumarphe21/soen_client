@@ -18,7 +18,7 @@ const Home = () => {
   }
   const navigate=useNavigate();
   useEffect(()=>{
-    axios.get('/projects/all').then((res)=>{
+    axios.get(`/projects/all/${user.email}`).then((res)=>{
       setProject(res.data.projects);
     }).catch((err)=>{
       console.log(err)
