@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from '../config/axios.js';
 import { UserContext } from "../context/user.context.jsx";
 import Markdown from 'markdown-to-jsx';
@@ -82,6 +82,7 @@ const Project = () => {
       console.log(res.data);
     }).catch((err)=>console.log(err));
   }
+  const navigate=useNavigate();
   function sendMessage(){
     axios.post(`/rooms/send/${location.state.project._id}`,{message,_id:user._id}).then((res)=>{
       const message = JSON.parse(res.data.split('```json')[1].split('```')[0]);
@@ -102,6 +103,13 @@ function getMessages(){
   axios.get(`/rooms/all-messages/${location.state.project._id}`).then((res)=>{
     setMessages(res.data);
   })
+}
+const handleDelete=({projectId})=>{
+  axios.post(`/projects/delete/${projectId}`).then((res)=>{
+    navigate('/');
+  }).catch((err)=>{
+    console.log(err);
+  });
 }
   useEffect(()=>{
     if(!webContainer){
@@ -124,7 +132,6 @@ function getMessages(){
     axios.get(`/rooms/all-messages/${location.state.project._id}`).then((res)=>{
       setMessages(res.data);
     });
-    axios.get(`/`)
     setInterval(getMessages,30000)
     axios.get('/users/all').then((res)=>{
       setUsers(res.data.users);
@@ -138,6 +145,9 @@ function getMessages(){
           <button className="flex gap-2" onClick={()=>setIsModalOpen(!isModalOpen)}>
             <i className="ri-add-fill mr-1"></i>
             <p>Add Collaborator</p>
+          </button>
+          <button>
+          <i className="ri-delete-bin-5-fill" onClick={()=>handleDelete({projectId:project._id})}></i>
           </button>
           <button
             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
@@ -206,14 +216,14 @@ function getMessages(){
           </header>
           <div className="users flex flex-col gap-2">
             {
-              project.users && project.users.map((user,i)=>(
-                <div key={i} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
+              project.users && project.users.map((user,i)=>{
+                return <div key={i} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
                   <div className="aspect-square w-fit h-fit text-white flex justify-center items-center rounded-full bg-slate-500 p-5">
                     <i className="ri-user-fill absolute"></i>
                   </div>
                   <h1 className="font-semibold text-lg">{user.email}</h1>
                 </div>
-              ))
+              })
             }
             
           </div>
